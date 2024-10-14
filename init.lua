@@ -4,8 +4,6 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
-vim.g.have_nerd_font = false
-
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.mouse = 'a'
@@ -94,81 +92,9 @@ require('lazy').setup({
     },
   },
 
-  -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
-  --
-  -- This is often very useful to both group configuration, as well as handle
-  -- lazy loading plugins that don't need to be loaded immediately at startup.
-  --
-  -- For example, in the following configuration, we use:
-  --  event = 'VimEnter'
-  --
-  -- which loads which-key before all the UI elements are loaded. Events can be
-  -- normal autocommands events (`:help autocmd-events`).
-  --
-  -- Then, because we use the `config` key, the configuration only runs
-  -- after the plugin has been loaded:
-  --  config = function() ... end
-
-  { -- Useful plugin to show you pending keybinds.
-    'folke/which-key.nvim',
-    event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-    opts = {
-      icons = {
-        -- set icon mappings to true if you have a Nerd Font
-        mappings = vim.g.have_nerd_font,
-        -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
-        -- default whick-key.nvim defined Nerd Font icons, otherwise define a string table
-        keys = vim.g.have_nerd_font and {} or {
-          Up = '<Up> ',
-          Down = '<Down> ',
-          Left = '<Left> ',
-          Right = '<Right> ',
-          C = '<C-…> ',
-          M = '<M-…> ',
-          D = '<D-…> ',
-          S = '<S-…> ',
-          CR = '<CR> ',
-          Esc = '<Esc> ',
-          ScrollWheelDown = '<ScrollWheelDown> ',
-          ScrollWheelUp = '<ScrollWheelUp> ',
-          NL = '<NL> ',
-          BS = '<BS> ',
-          Space = '<Space> ',
-          Tab = '<Tab> ',
-          F1 = '<F1>',
-          F2 = '<F2>',
-          F3 = '<F3>',
-          F4 = '<F4>',
-          F5 = '<F5>',
-          F6 = '<F6>',
-          F7 = '<F7>',
-          F8 = '<F8>',
-          F9 = '<F9>',
-          F10 = '<F10>',
-          F11 = '<F11>',
-          F12 = '<F12>',
-        },
-      },
-
-      -- Document existing key chains
-      spec = {
-        { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
-        { '<leader>d', group = '[D]ocument' },
-        { '<leader>r', group = '[R]ename' },
-        { '<leader>s', group = '[S]earch' },
-        { '<leader>w', group = '[W]orkspace' },
-        { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-      },
-    },
+  {
+    'tpope/vim-fugitive',
   },
-
-  -- NOTE: Plugins can specify dependencies.
-  --
-  -- The dependencies are proper plugin specifications as well - anything
-  -- you do for a plugin at the top level, you can do for a dependency.
-  --
-  -- Use the `dependencies` key to specify the dependencies of a particular plugin
 
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
@@ -209,6 +135,7 @@ require('lazy').setup({
         -- },
         -- pickers = {}
         defaults = {
+          file_ignore_patterns = { 'node_modules' },
           layout_config = {
             prompt_position = 'top', -- Make sure the prompt is at the top
             horizontal = { -- assuming you're using a horizontal layout
@@ -420,50 +347,27 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
         pyright = {},
-        -- rust_analyzer = {},
-        -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-        --
-        -- Some languages (like typescript) have entire language plugins that can be useful:
-        --    https://github.com/pmizio/typescript-tools.nvim
-        --
-        -- But for many setups, the LSP (`tsserver`) will work just fine
+        tailwindcss = {},
+        emmet_ls = {
+          filetypes = { 'html', 'typescript', 'javascript', 'typescriptreact', 'javascriptreact', 'css', 'sass', 'scss', 'less' },
+        },
         angularls = {},
-
-        tsserver = {
-
+        ts_ls = {
           filetypes = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact', 'json' },
         },
-        --
-
         lua_ls = {
-          -- cmd = {...},
-          -- filetypes = { ...},
-          -- capabilities = {},
           settings = {
             Lua = {
               completion = {
                 callSnippet = 'Replace',
               },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
             },
           },
         },
       }
 
-      -- Ensure the servers and tools above are installed
-      --  To check the current status of installed tools and/or manually install
-      --  other tools, you can run
-      --    :Mason
-      --
-      --  You can press `g?` for help in this menu.
       require('mason').setup()
-
-      -- You can add other tools here that you want Mason to install
-      -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
@@ -474,62 +378,12 @@ require('lazy').setup({
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for tsserver)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
         },
       }
     end,
-  },
-
-  { -- Autoformat
-    'stevearc/conform.nvim',
-    event = { 'BufWritePre' },
-    cmd = { 'ConformInfo' },
-    keys = {
-      {
-        '<leader>f',
-        function()
-          require('conform').format { async = true, lsp_format = 'fallback' }
-        end,
-        mode = '',
-        desc = '[F]ormat buffer',
-      },
-    },
-    opts = {
-      notify_on_error = false,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
-        local lsp_format_opt
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          lsp_format_opt = 'never'
-        else
-          lsp_format_opt = 'fallback'
-        end
-        return {
-          timeout_ms = 500,
-          lsp_format = lsp_format_opt,
-        }
-      end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        python = { 'isort', 'black' },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        typescript = { 'prettierd', 'prettier', stop_after_first = true },
-        html = { 'prettierd', 'prettier', stop_after_first = true },
-        css = { 'prettierd', 'prettier', stop_after_first = true },
-        scss = { 'prettierd', 'prettier', stop_after_first = true },
-      },
-    },
   },
 
   { -- Autocompletion
@@ -540,25 +394,11 @@ require('lazy').setup({
       {
         'L3MON4D3/LuaSnip',
         build = (function()
-          -- Build Step is needed for regex support in snippets.
-          -- This step is not supported in many windows environments.
-          -- Remove the below condition to re-enable on windows.
           if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
             return
           end
           return 'make install_jsregexp'
         end)(),
-        dependencies = {
-          -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          {
-            'rafamadriz/friendly-snippets',
-            config = function()
-              require('luasnip.loaders.from_vscode').lazy_load()
-            end,
-          },
-        },
       },
       'saadparwaiz1/cmp_luasnip',
 
@@ -647,23 +487,69 @@ require('lazy').setup({
       }
     end,
   },
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-moon'
 
-      -- You can configure highlights by doing something like:
-      vim.cmd.hi 'Comment gui=none'
-    end,
-  },
+  -- {
+  --   'craftzdog/solarized-osaka.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   opts = {},
+  -- },
+
+  { 'catppuccin/nvim', name = 'catppuccin', priority = 1000 },
+
+  -- {
+  --   'ellisonleao/gruvbox.nvim',
+  --   priority = 1000,
+  --   config = function()
+  --     vim.o.background = 'dark' -- or "light" for light version
+  --     vim.cmd [[colorscheme gruvbox]]
+  --     vim.cmd.hi 'Comment gui=none'
+  --
+  --     -- Default options:
+  --     require('gruvbox').setup {
+  --       terminal_colors = true, -- add neovim terminal colors
+  --       undercurl = true,
+  --       underline = true,
+  --       bold = true,
+  --       italic = {
+  --         strings = false,
+  --         emphasis = true,
+  --         comments = true,
+  --         operators = false,
+  --         folds = true,
+  --       },
+  --       strikethrough = true,
+  --       invert_selection = false,
+  --       invert_signs = false,
+  --       invert_tabline = false,
+  --       invert_intend_guides = false,
+  --       inverse = true, -- invert background for search, diffs, statuslines and errors
+  --       contrast = 'hard', -- can be "hard", "soft" or empty string
+  --       palette_overrides = {},
+  --       overrides = {},
+  --       dim_inactive = false,
+  --       transparent_mode = false,
+  --     }
+  --     vim.cmd 'colorscheme gruvbox'
+  --   end,
+  -- },
+  --{ -- You can easily change to a different colorscheme.
+  -- Change the name of the colorscheme plugin below, and then
+  -- change the command in the config to whatever the name of that colorscheme is.
+  --
+  -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  -- 'folke/tokyonight.nvim',
+  -- priority = 1000, -- Make sure to load this before all the other start plugins.
+  -- init = function()
+  -- Load the colorscheme here.
+  -- Like many other themes, this one has different styles, and you could load
+  -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+  -- vim.cmd.colorscheme 'tokyonight-moon'
+
+  -- You can configure highlights by doing something like:
+  -- vim.cmd.hi 'Comment gui=none'
+  -- end,
+  -- },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -752,6 +638,7 @@ require('lazy').setup({
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.gitsigns',
+  require 'kickstart.plugins.conform',
 
   -- { import = 'custom.plugins' },
 }, {
@@ -777,24 +664,20 @@ require('lazy').setup({
 })
 
 -- Folding configuration
-vim.o.foldmethod = 'expr'
-vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
-vim.o.foldlevel = 99
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.opt.foldlevel = 99 -- Start with all folds open
 
 -- Custom folding text
 vim.opt.foldtext =
   [[substitute(getline(v:foldstart),'\\t',repeat('\ ',&tabstop),'g').'...'.trim(getline(v:foldend)) . ' (' . (v:foldend - v:foldstart + 1) . ' lines)']]
 
--- Folding shortcuts
-vim.keymap.set('n', '<leader>zf', ':set foldmethod=manual<CR>', { noremap = true, silent = true, desc = 'Set fold method to manual' })
-vim.keymap.set('n', '<leader>ze', ':set foldmethod=expr<CR>', { noremap = true, silent = true, desc = 'Set fold method to expr (TreeSitter)' })
-vim.keymap.set('n', '<leader>zi', 'za', { noremap = true, silent = true, desc = 'Toggle fold under cursor' })
-vim.keymap.set('n', '<leader>zj', 'zj', { noremap = true, silent = true, desc = 'Move to next fold' })
-vim.keymap.set('n', '<leader>zk', 'zk', { noremap = true, silent = true, desc = 'Move to previous fold' })
-vim.keymap.set('n', '<leader>zo', 'zo', { noremap = true, silent = true, desc = 'Open fold under cursor' })
-vim.keymap.set('n', '<leader>zc', 'zc', { noremap = true, silent = true, desc = 'Close fold under cursor' })
-vim.keymap.set('n', '<leader>zR', 'zR', { noremap = true, silent = true, desc = 'Open all folds' })
-vim.keymap.set('n', '<leader>zM', 'zM', { noremap = true, silent = true, desc = 'Close all folds' })
+-- Folding keymaps
+vim.keymap.set('n', 'zc', 'zc', { noremap = true, silent = true, desc = 'Close fold under cursor' })
+vim.keymap.set('n', 'zo', 'zo', { noremap = true, silent = true, desc = 'Open fold under cursor' })
+vim.keymap.set('n', 'za', 'za', { noremap = true, silent = true, desc = 'Toggle fold under cursor' })
+vim.keymap.set('n', 'zR', 'zR', { noremap = true, silent = true, desc = 'Open all folds' })
+vim.keymap.set('n', 'zM', 'zM', { noremap = true, silent = true, desc = 'Close all folds' })
 
 -- Highlight folded lines
 vim.api.nvim_set_hl(0, 'Folded', { bg = '#1c1c1c', fg = '#87afaf' })
@@ -809,21 +692,39 @@ vim.api.nvim_create_autocmd({ 'BufWinEnter' }, {
   command = 'silent! loadview',
 })
 
--- Custom function to toggle folds
-vim.cmd [[
-  function! ToggleFold()
-    if foldlevel('.') == 0
-      normal! zj
-    else
-      if foldclosed('.') < 0
-        . foldclose
-      else
-        . foldopen
-      endif
-    endif
-  endfunction
-]]
-vim.keymap.set('n', '<leader>zt', ':call ToggleFold()<CR>', { noremap = true, silent = true, desc = 'Toggle fold' })
+-- In your init.lua or a separate theme configuration file
+vim.cmd.colorscheme 'catppuccin'
+
+-- Optional: Set the flavor (latte, frappe, macchiato, mocha)
+vim.g.catppuccin_flavour = 'mocha'
+
+vim.g.have_nerd_font = true
+vim.opt.termguicolors = true
+
+require('catppuccin').setup {
+  transparent_background = false,
+  term_colors = true,
+  -- Add other configuration options as needed
+}
+
+-- Add this to your init.lua or a separate plugin file
+
+local function format_html_range()
+  local start_line = vim.fn.line "'<"
+  local end_line = vim.fn.line "'>"
+
+  -- Ensure the formatprg is set to a suitable HTML formatter
+  vim.bo.formatprg = 'prettier --parser html'
+
+  -- Format the selected range
+  vim.cmd(string.format('%d,%d!%s', start_line, end_line, vim.bo.formatprg))
+end
+
+-- Create a command to call the function
+vim.api.nvim_create_user_command('FormatHTMLRange', format_html_range, { range = true })
+
+-- Optional: Add a keybinding (e.g., <leader>fh in visual mode)
+vim.api.nvim_set_keymap('v', '<leader>fh', ':FormatHTMLRange<CR>', { noremap = true, silent = true })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
