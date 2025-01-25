@@ -27,6 +27,7 @@ return { -- Autoformat
       typescript = { 'prettier' },
       javascriptreact = { 'prettier' },
       typescriptreact = { 'prettier' },
+      svelte = { 'prettier' },
     },
     notify_on_error = true,
     log_level = vim.log.levels.TRACE, -- Keep for debugging
